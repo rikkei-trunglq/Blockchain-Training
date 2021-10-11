@@ -302,3 +302,151 @@ string name = idToName[1];
 ### `Functions` trong Contract 
 - `Functions` là bộ hành vi trong Contract
 - Một số phạm vi truy cập của `Function`:
+   - `public` là các `function` có thể được gọi trong Contract và ngoài Contract
+
+     ```
+     contract FirstContract {
+        uint public publicVariable;
+    
+        constructor() public {
+           publicVariable = 10;
+        }
+
+        // public function
+        function incrVariable(uint number) public {
+          publicVariable = publicVariable + number;
+        }
+
+        function executeIncrement(uint number) public {
+          // được gọi trong Contract
+          incrVariable(number);
+        }
+     }
+
+     contract SecondContract {
+        FirstContract firstContract = new FirstContract();
+    
+        function executeIncrement(uint number) public {
+            // được gọi tại một Contract khác
+            firstContract.incrVariable(number);
+        }
+     }
+
+     contract ThirdContract is FirstContract {
+        function executeIncrementThrid(uint number) public {
+            // được gọi tại Contract kế thừa sử dụng this
+            this.incrVariable(number);
+        }
+     }
+     ```
+   - `external` là các `function` chỉ thể được gọi ngoài Contract chứa nó
+
+     ```
+     contract FirstContract {
+        uint public publicVariable;
+    
+        constructor() public {
+           publicVariable = 10;
+        }
+
+        // external function
+        function incrVariable(uint number) external {
+          publicVariable = publicVariable + number;
+        }
+
+        function executeIncrement(uint number) public {
+          // báo lỗi vì nó không thể gọi bên trong Contract chứa nó
+          incrVariable(number);
+        }
+     }
+
+     contract SecondContract {
+        FirstContract firstContract = new FirstContract();
+    
+        function executeIncrement(uint number) public {
+            // được gọi tại một Contract khác
+            firstContract.incrVariable(number);
+        }
+     }
+
+     contract ThirdContract is FirstContract {
+        function executeIncrementThrid(uint number) public {
+            // được gọi tại Contract kế thừa sử dụng this
+            this.incrVariable(number);
+        }
+     }
+     ```
+   - `private` là các `function` chỉ thể được gọi trong Contract chứa nó và các Contract kế thừa
+
+     ```
+     contract FirstContract {
+        uint public publicVariable;
+    
+        constructor() public {
+           publicVariable = 10;
+        }
+
+        // private function
+        function incrVariable(uint number) private {
+          publicVariable = publicVariable + number;
+        }
+
+        function executeIncrement(uint number) public {
+          // gọi bên trong Contract
+          incrVariable(number);
+        }
+     }
+
+     contract SecondContract {
+        FirstContract firstContract = new FirstContract();
+    
+        function executeIncrement(uint number) public {
+            // Báo lỗi vì không thể gọi bên ngoài Contract
+            firstContract.incrVariable(number);
+        }
+     }
+
+     contract ThirdContract is FirstContract {
+        function executeIncrementThrid(uint number) public {
+            // Báo lỗi vì không thể gọi bên ngoài Contract
+            this.incrVariable(number);
+        }
+     }
+     ```
+   - `internal` là các `function` chỉ thể được gọi trong Contract chứa nó và các Contract kế thừa
+
+     ```
+     contract FirstContract {
+        uint public publicVariable;
+    
+        constructor() public {
+           publicVariable = 10;
+        }
+
+        // internal function
+        function incrVariable(uint number) internal {
+          publicVariable = publicVariable + number;
+        }
+
+        function executeIncrement(uint number) public {
+          // gọi bên trong Contract
+          incrVariable(number);
+        }
+     }
+
+     contract SecondContract {
+        FirstContract firstContract = new FirstContract();
+    
+        function executeIncrement(uint number) public {
+            // Báo lỗi vì không thể gọi bên ngoài Contract
+            firstContract.incrVariable(number);
+        }
+     }
+
+     contract ThirdContract is FirstContract {
+        function executeIncrementThrid(uint number) public {
+            // gọi bên trong Contract kế thừa
+            incrVariable(number);
+        }
+     }
+     ```
