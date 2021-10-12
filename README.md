@@ -59,6 +59,12 @@
     enum FreshJuiceSize{ SMALL, MEDIUM, LARGE }
     FreshJuiceSize choice = FreshJuiceSize.LARGE;
 ```
+- Để khai báo một hằng số(constant) thêm từ khóa `constant` sau kiểu dữ liệu
+```
+    uint constant x = 32**22 + 8;
+    string constant text = "abc";
+    bytes32 constant myHash = keccak256("abc");
+```
 
 ## Variables(Biến)
 - State Variables: Biến khai báo và lưu trữ trong Contract
@@ -211,6 +217,28 @@ string name = idToName[1];
 - Contract trong Solidity cũng giống như Class trong Java hay C#, nó biểu thị một đối tượng. 
 - Mỗi Contract có thể chứa các `State Variables`, `Functions`, `Function Modifier`, `Events`, `Structs`, `Enums`.
 - Contract hỗ trợ tính kế thừa.
+
+### `Contructor` trong Contract 
+- `contructor` là một function có thể có hoặc không khi viết một Contract
+- `contructor` được chạy khi Contract được khởi tạo
+- Một function `contructor` có thể là `public` hoặc `internal`. Nếu không có function `contructor` khi khởi tạo Contract một `default contructor` sẽ được thực thi
+
+```
+pragma solidity >=0.5.0 <0.7.0;
+
+contract A {
+    uint public a;
+
+    constructor(uint _a) internal {
+        a = _a;
+    }
+}
+
+contract B is A(1) {
+    // default contructor
+    constructor() public {}
+}
+```
 
 ### `State variables` trong Contract 
 - Các `State Variables` là các biến được lưu trữ trong Contract.
@@ -512,3 +540,91 @@ string name = idToName[1];
         }
     }
    ```
+   - `Fallback Function` là các `function` được thực thi bất cứ khi nào mà nó nhận được Ether, nhận Ether và thêm nó vào tổng số dư của Contract. `Fallback Function` phải được gán mác `payable`, nếu không Contract sẽ không thể nhận Ether và trả ra exception.
+   ```
+    contract OnlineStore {
+      function buySomething() external payable {
+        // Check to make sure 0.001 ether was sent to the function call:
+        require(msg.value == 0.001 ether);
+        // If so, some logic to transfer the digital item to the caller of the function:
+        transferThing(msg.sender);
+      }
+    }
+   ```
+   - `Function Overloading` trong một Contract có thể có nhiều function cùng tên nhưng khác loại tham số đầu vào. `overloading` thường được áp dụng trong kế thừa
+   ```
+    pragma solidity >=0.4.16 <0.7.0;
+
+    contract A {
+        function f(uint _in) public pure returns (uint out) {
+            out = _in;
+        }
+
+        function f(uint _in, bool _really) public pure returns (uint out) {
+            if (_really)
+                out = _in;
+        }
+    }
+   ```
+
+### `Events` trong Contract 
+- `Event` là cách để Contract thông báo có điều gì xảy ra với Blockchain trên giao diện người dùng của ứng dụng. Có thể lắng nghe và đưa ra hành động xử lý khi có vấn đề.
+
+  ```
+  // declare the event
+  event IntegersAdded(uint x, uint y, uint result);
+
+  function add(uint _x, uint _y) public returns (uint) {
+    uint result = _x + _y;
+    // fire an event to let the app know the function was called:
+    emit IntegersAdded(_x, _y, result);
+    return result;
+  }
+  ```
+  In front-end
+  ```
+  YourContract.IntegersAdded(function(error, result) {
+    // do something with result
+  })
+  ```
+### `Function Modifiers` trong Contract 
+- `Function Modifier` sử dụng để thay đổi hành vi của một function, được sử dụng để thêm các tiền xử lý vào trong function, các tiền xử lý sẽ được thực thi trước khi chạy các logic ban đầu của function
+
+  ```
+  pragma solidity ^0.5.0;
+
+  contract Owner {
+    address owner;
+    constructor() public {
+        owner = msg.sender;
+    }
+
+    // Function Modifier kiểm tra xem người gửi có phải là 'owner' hay không
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+
+    // Function Modifier kiểm tra xem giá được nhập có lớn hơn giá ban đầu không
+    modifier costs(uint price) {
+        if (msg.value >= price) {
+          _;
+        }
+    }
+  }
+  contract Register is Owner {
+    mapping (address => bool) registeredAddresses;
+    uint price;
+    constructor(uint initialPrice) public { price = initialPrice; }
+    
+    // Thêm Function Modifier vào trong function
+    function register() public payable costs(price) {
+        registeredAddresses[msg.sender] = true;
+    }
+
+    // Thêm Function Modifier vào trong function
+    function changePrice(uint _price) public onlyOwner {
+        price = _price;
+    }
+  }
+  ```
