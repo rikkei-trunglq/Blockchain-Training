@@ -106,7 +106,7 @@ contract ZombieFactory {
         
     -- Modulus(%)
         ```
-        uint dnaDigits = 10 / 3;
+        uint dnaDigits = 10 % 3;
         ```
         
     -- Increment(++)
@@ -405,7 +405,7 @@ contract B is A(1) {
         }
      }
      ```
-   - `private` là các `function` chỉ thể được gọi trong Contract chứa nó và các Contract kế thừa
+   - `private` là các `function` chỉ thể được gọi trong Contract chứa nó
 
      ```
      contract FirstContract {
@@ -628,3 +628,266 @@ contract B is A(1) {
     }
   }
   ```
+## Data Locations - `Storage`, `Memory` and `Calldata`
+- Khi khai báo các biến, chúng có thể được chỉ định rõ nơi lưu trữ thông qua 3 nơi lưu trữ sau:
+
+  - `storage` tại vị trí nơi mà các biến `State Variable` được lưu trữ trên Blockchain
+
+    ```
+    pragma solidity >=0.4.0 <0.7.0;
+
+    contract C {
+        uint[] x; // the data location of x is storage
+
+        function f(uint[] memory memoryArray) public {
+            x = memoryArray; // works, copies the whole array to storage
+            uint[] storage y = x; // works, assigns a pointer, data location of y is storage
+        }
+    }
+    ```
+
+  - `memory` là các biến lưu trữ local, lưu trữ theo function, khi function thực hiện xong biến sẽ được giải phóng. Với các kiểu dữ liệu như `arrays`, `structs`, `mappings` và `strings` cần phải lưu trữ `memory`
+  
+    ```
+    pragma solidity >=0.5.0 <0.6.0;
+
+    contract ZombieFactory {
+
+        function createZombie (string memory _name, uint _dna) public {
+            // ...
+        }
+
+    }
+    ```
+
+  - `calldata` là các biến read-only, không thể thay đổi được lưu trữ lại nơi lưu trữ các tham số của function, chỉ tồn lại trong quá trình thực thi function. Chỉ khả dụng với `external` function.
+    
+    ```
+    contract FirstContract {
+
+        // Báo lỗi do không thể thay đổi được giá trị của biến được
+        function demoCallData(string calldata name) external {
+            name = "trung ne";
+        }
+
+        // sử dụng calldata với external function
+        function demoCallDataV2(string calldata name) external {
+            // todo
+        }
+    }
+    ```
+## `Inheritance`(Tính kế thừa giữa các Contract)
+- Khi một Contract kế thừa từ một Contract khác, chỉ duy nhất một Contract được khởi tạo trong Blockchain, toàn bộ code của Contract mà nó kế thừa sẽ đều được compile vào trong Contract đã được tạo
+
+  ```
+  pragma solidity >=0.5.0 <0.6.0;
+
+  contract FirstContract {
+      uint public publicVariable;
+      int private privateVariable;
+      string internal internalVariable;
+      
+      constructor() public {
+          publicVariable = 10;
+          privateVariable = -20;
+          internalVariable = 'Ahihi';
+      }
+      
+      function incrVariable(uint number) internal {
+          publicVariable = publicVariable + number;
+      }
+  }
+
+  contract ThirdContract is FirstContract {
+      
+      // Sử dụng super để gọi các đến internal function của Contract cha
+      function executeIncrementThrid(uint number) public {
+          super.incrVariable(number);
+      }
+  }
+  ```
+- Solidity hỗ trợ đa kế thừa
+
+  ```
+  pragma solidity >=0.5.0 <0.6.0;
+
+  contract FirstContract {}
+  contract SecondContract {}
+  contract ThirdContract is FirstContract, SecondContract{}
+  ```
+  - `Diamond Problem` trong đa kế thừa
+  
+  Ví dụ:
+  
+  Có một Contract là `Everything` chứa một function là `breathe()`
+  ```
+  pragma solidity >=0.5.0 <0.6.0;
+
+  import "hardhat/console.sol";
+
+  contract Everything {
+
+    constructor() public {
+        console.log("Everything");
+    }
+
+    function breathe() public {
+      console.log("Everything breathe!");
+    }
+  }
+  ```
+  Một Contract thứ hai là `Animal` kế thừa từ Contract `Everything` và override lại phương thức `breathe()`
+  ```
+  pragma solidity >=0.5.0 <0.6.0;
+
+  import "hardhat/console.sol";
+
+  contract Everything {
+
+    constructor() public {
+        console.log("Everything");
+    }
+
+    function breathe() public {
+      console.log("Everything breathe!");
+    }
+  }
+
+  contract Animal is Everything {
+
+    constructor() public {
+        console.log("Animal");
+    }
+
+    function breathe() public {
+      console.log("Animal breathe!");
+    }
+  }
+  ```
+  Một Contract thứ ba là `People` kế thừa từ Contract `Everything` và override lại phương thức `breathe()`
+  ```
+  pragma solidity >=0.5.0 <0.6.0;
+
+  import "hardhat/console.sol";
+
+  contract Everything {
+
+    constructor() public {
+        console.log("Everything");
+    }
+
+    function breathe() public {
+      console.log("Everything breathe!");
+    }
+  }
+
+  contract Animal is Everything {
+
+    constructor() public {
+        console.log("Animal");
+    }
+
+    function breathe() public {
+      console.log("Animal breathe!");
+    }
+  }
+
+  contract People is Everything {
+
+    constructor() public {
+        console.log("People");
+    }
+
+    function breathe() public {
+      console.log("People breathe!");
+    }
+  }
+  ```
+  Một Contract thứ tư là `XMen` kế thừa từ Contract `Animal`, `People` và override lại phương thức `breathe()`
+  ```
+  pragma solidity >=0.5.0 <0.6.0;
+
+  import "hardhat/console.sol";
+
+  contract Everything {
+
+    constructor() public {
+        console.log("Everything");
+    }
+
+    function breathe() public {
+      console.log("Everything breathe!");
+    }
+  }
+
+  contract Animal is Everything {
+
+    constructor() public {
+        console.log("Animal");
+    }
+
+    function breathe() public {
+      console.log("Animal breathe!");
+    }
+  }
+
+  contract People is Everything {
+
+    constructor() public {
+        console.log("People");
+    }
+
+    function breathe() public {
+      console.log("People breathe!");
+    }
+  }
+
+  contract XMen is Animal,People {
+    
+    constructor() public {
+        console.log("XMen");
+    }
+    
+    function breathe() public view {
+        console.log("XMen breathe!");
+    }
+  }
+  ```
+  Trong trường hợp này Contract muốn override lại phương thức `breathe()` nhưng kế thừa từ 2 Contract là `Animal` và `People` nên sẽ không biết phải override phương thức `breathe()` từ Contract nào => Vấn đề này được gọi là `Diamond Problem`
+
+  Solidity đã giải quyết vấn đề này bằng cách áp dụng giải thuật `C3 linearization` như sau:
+
+  ```
+  // Contract `Everything`
+  // Contract `Animal` kế thừa Contract `Everything`
+  // Contract `People` kế thừa Contract `Everything`
+  // Contract `XMen` kế thừa Contract `Animal` và `People`
+
+  L(Everything) = [Everything]
+
+  L(Animal)     = [Animal] + Merge(L(Everything), [Everything])
+                = [Animal] + Merge([Everything], [Everything])
+                = [Animal, Everything]
+
+  L(People)     = [People] + Merge(L(Everything), [Everything])
+                = [People] + Merge([Everything], [Everything])
+                = [People, Everything]
+
+  L(XMen)       = [XMen] + Merge(L(Animal), L(People), [Animal, People])
+                = [XMen] + Merge([Animal, Everything], [People, Everything], [Animal, People])
+                = [XMen, Animal] + Merge([Everything], [People, Everything], [People])
+                = [XMen, Animal, People] + Merge([Everything], [Everything])
+                = [XMen, Animal, People, Everything]
+  ```
+  => Nhận thấy thứ tự Contract được gọi sẽ như sau: `Everything => People => Animal => XMen`
+  
+  ✨Thực tế thứ tự Contract được gọi khi deploy đoạn code trên là `Everything => Animal => People => XMen`. Nguyên nhân là thứ tự Contract kế thừa sẽ bị đảo ngược lại thành✨
+
+  ```
+  L(XMen)       = [XMen] + Merge(L(People), L(Animal), [People, Animal])
+                = [XMen] + Merge([People, Everything], [Animal, Everything], [People, Animal])
+                = [XMen, People] + Merge([Everything], [Animal, Everything], [Animal])
+                = [XMen, People, Animal] + Merge([Everything], [Everything])
+                = [XMen, People, Animal, Everything]
+  ```
+  => Thứ tự Contract được đúng sẽ là `Everything => Animal => People => XMen`
