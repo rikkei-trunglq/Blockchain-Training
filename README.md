@@ -301,6 +301,7 @@ string name = idToName[1];
      ```
 ### `Functions` trong Contract 
 - `Functions` là bộ hành vi trong Contract
+- `Functions` hỗ trợ trả về nhiều giá trị
 - Một số phạm vi truy cập của `Function`:
    - `public` là các `function` có thể được gọi trong Contract và ngoài Contract
 
@@ -450,3 +451,64 @@ string name = idToName[1];
         }
      }
      ```
+- Một số loại `Function`:
+   - `View Function` là các `function` đảm bảo không làm thay đổi trạng trái, một số trường hợp sau được tính là sẽ làm thay đổi trạng thái:
+
+      - Thay đổi giá trị của State Variables
+
+      - Emit Events
+
+      - Khởi tạo Contract mới
+
+      - Sử dụng `selfdestruct`(Tìm hiểu sau)
+
+      - Sending Ether via calls.(Tìm hiểu sau)
+
+      - Gọi một `function` khác không phải là `view` hoặc `pure`
+
+      - Using low-level calls(Tìm hiểu sau)
+
+      - Using inline assembly that contains certain opcodes.(Tìm hiểu sau)
+
+   - Các function `Getter` luôn là các `View Function`
+
+   ```
+    contract FirstContract {
+        uint public publicVariable;
+        int private privateVariable;
+        string internal internalVariable;
+        
+        constructor() public {
+            publicVariable = 10;
+            privateVariable = -20;
+            internalVariable = 'Ahihi';
+        }
+        
+        function getPrivateVariable() public view returns (int) {
+            return privateVariable;
+        }
+        
+        function getInternalVariable() public view returns (string memory) {
+            return internalVariable;
+        }
+    }
+   ```
+   - `Pure Function` là các `function` đảm bảo không đọc hoặc làm thay đổi trạng trái, ngoài một số trường hợp làm thay đổi trạng thái như ở phần View thì một số trường hợp sau được tính là đọc từ trạng thái:
+
+      - Lấy giá trị từ State Variables
+
+      - Sử dụng `address(this).balance` hoặc `<address>.balance`
+
+      - Accessing any of the members of block, tx, msg (with the exception of msg.sig and msg.data)(Tìm hiểu sau)
+
+      - Gọi một `funtion` khác không phải `pure`
+
+      - Using inline assembly that contains certain opcodes.(Tìm hiểu sau)
+
+   ```
+    contract FirstContract {
+        function calculate() public pure returns (int) {
+            return 5 * 5;
+        }
+    }
+   ```
