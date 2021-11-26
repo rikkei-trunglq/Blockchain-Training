@@ -891,3 +891,263 @@ contract B is A(1) {
                 = [XMen, People, Animal, Everything]
   ```
   => Thứ tự Contract được đúng sẽ là `Everything => Animal => People => XMen`
+  
+# ERC20
+
+Trong Ethereum, ERC là một Yêu cầu nhận xét của Ethereum (Ethereum Request for Comments). Đây là những tài liệu kỹ thuật phác thảo các tiêu chuẩn để lập trình trên Ethereum. Không nên nhầm lẫn chúng với Đề xuất cải tiến Ethereum (tức các EIP). Giống như BIP của Bitcoin, EIP là những đề xuất cải tiến cho chính giao thức. Thay vào đó, các ERC nhằm mục đích thiết lập các quy ước giúp các ứng dụng và hợp đồng tương tác với nhau dễ dàng hơn.
+
+Được đề xuất bởi Vitalik Buterin và Fabian Vogelsteller vào năm 2015, ERC-20 đề xuất một định dạng tương đối đơn giản cho các token hoạt động trên Ethereum. Bằng cách làm theo phác thảo, các nhà phát triển không cần phải phát minh lại cấu trúc nào khác. Thay vào đó, họ có thể xây dựng trên một nền tảng đã được sử dụng trong toàn ngành.
+
+Không giống như ETH (tiền mã hoá gốc của Ethereum), các token ERC-20 không được giữ bởi tài khoản. Các token này chỉ tồn tại trong một hợp đồng, giống như một cơ sở dữ liệu độc lập. Nó chỉ định các quy tắc cho các token (như tên, ký hiệu, khả năng phân chia) và giữ một danh sách ánh xạ số dư của người dùng đến địa chỉ Ethereum của họ.
+
+Để tuân thủ ERC-20, hợp đồng của bạn cần bao gồm sáu chức năng bắt buộc: `totalSupply` , `balanceOf` , `transfer` , `transferFrom` , `approve` và `allowance` . Ngoài ra, bạn có thể chỉ định các chức năng tùy chọn, chẳng hạn như `name`, `symbol` và `decimal`.
+
+## totalSupply
+```
+function totalSupply() public view returns (uint256)
+```
+
+Khi được người dùng gọi, hàm trên trả về tổng nguồn cung token mà hợp đồng nắm giữ.
+
+## balanceOf
+```
+function balanceOf (address _owner) public view trả về (uint256 balance)
+```
+
+Không giống như `totalSupply`, `balanceOf` nhận một tham số (một địa chỉ). Khi hàm được gọi, nó trả về số dư token mà địa chỉ đó đang nắm giữ. Hãy nhớ rằng các tài khoản trên mạng Ethereum là công khai, vì vậy bạn có thể truy vấn số dư của bất kỳ người dùng nào mà bạn biết địa chỉ.
+
+## transfer
+```
+function transfer(address _to, uint256 _value) public returns (bool success)
+```
+
+Tính năng `transfer` chuyển một cách khéo léo các token từ người dùng này sang người dùng khác. Tại đây, bạn cung cấp địa chỉ muốn gửi và số tiền cần chuyển.
+Khi tính năng được gọi, transfer sẽ kích hoạt một thứ được gọi là event (trong trường hợp này là event transfer). Về cơ bản, điều này yêu cầu blockchain bao gồm một tham chiếu đến nó.
+
+## transferFrom
+```
+function transferFrom(address _from, address _to, uint256 _value) public returns (bool success)
+```
+
+Chức năng `transferFrom` là một sự thay thế tiện dụng hơn so với chức năng transfer. Nó cho phép lập trình nhiều hơn một chút trong các ứng dụng phi tập trung. Giống như transfer, nó được sử dụng để di chuyển token, nhưng những token đó không nhất thiết phải thuộc về người gọi hợp đồng. 
+Nói cách khác, bạn có thể ủy quyền cho ai đó– hoặc một hợp đồng khác – thay mặt bạn chuyển tiền. Lấy ví dụ như khi bạn cần thanh toán cho các dịch vụ trả phí theo thời gian, khi bạn không muốn tốn thời gian gửi thanh toán theo cách thủ công hàng ngày/tuần/tháng. Thay vào đó, bạn chỉ cần để một chương trình làm việc đó tự động cho bạn.
+
+Hàm này kích hoạt cùng một sự kiện như `transfer`.
+
+## approve
+```
+function approve(address _spender, uint256 _value) public returns (bool success)
+```
+
+`approve` là một chức năng hữu ích và có nhiều hướng để lập trình. Với chức năng này, bạn có thể giới hạn số lượng token mà một hợp đồng thông minh có thể rút từ số dư của bạn. Nếu không có nó, bạn phải đối mặt với nguy cơ hợp đồng bị trục trặc (hoặc bị lợi dụng) và tất cả tiền của bạn có khả năng bị đánh cắp. 
+
+Lấy ví dụ về một mô hình đăng ký (subscription) một lần nữa. Giả sử rằng bạn có một lượng lớn BinanceAcademyTokens và bạn muốn thiết lập các khoản thanh toán định kỳ hàng tuần cho một DApp trực tuyến. Vì bận rộn đọc các bài viết của Binance Academy cả ngày lẫn đêm, bạn không muốn mất thời gian tạo giao dịch theo cách thủ công mỗi tuần.
+
+Và bạn cũng có một số dư lớn BinanceAcademyTokens, vượt xa số tiền cần thanh toán. Để ngăn DApp rút hết tiền, bạn có thể đặt giới hạn bằng chức năng approve. Giả sử, việc đăng ký dịch vụ khiến bạn tốn một BinanceAcademyToken mỗi tuần. Nếu bạn giới hạn giá trị được phê duyệt ở mức 20 token, bạn có thể chọn thanh toán tự động cho đăng ký của mình trong năm tháng.
+
+Tệ nhất, nếu DApp cố gắng rút tất cả tiền của bạn hoặc nếu phát hiện thấy lỗi, bạn chỉ có thể mất hai mươi token. Điều kiện này không phải là lý tưởng, nhưng ít nhất nó không khiến bạn mất tất cả tài sản mình đang nắm giữ.
+
+Khi được gọi, approve sẽ kích hoạt sự kiện approval. Giống như sự kiện trong transfer, chức năng approve cũng ghi dữ liệu vào blockchain.
+
+## allowance 
+```
+function allowance(address _owner, address _spender) public view returns (uint256 remaining)
+```
+
+`allowance` có thể được sử dụng cùng với approve . Khi bạn đã cho phép hợp đồng quản lý các token của mình, bạn có thể sử dụng quyền này để kiểm tra xem nó vẫn có thể rút được bao nhiêu tiền. Ví dụ: nếu gói đăng ký của bạn đã sử dụng hết mười hai trong số hai mươi token được chấp thuận của bạn, thì việc gọi hàm allowance sẽ trả về tổng số là tám.
+
+
+# ERC1155
+
+ERC-1155 là một tiêu chuẩn token kỹ thuật số do Enjin tạo ra có thể được sử dụng để tạo cả tài sản có Fungible (tiền tệ) và Non-Fungible (thẻ kỹ thuật số, vật nuôi và các vật phẩm trong game) trên mạng lưới Ethereum. Bằng cách sử dụng mạng Ethereum, ERC-1155 token an toàn, có thể giao dịch và miễn nhiễm với hack.
+
+ERC-1155 một cách mới để tạo token cho phép thực hiện các giao dịch và gói giao dịch hiệu quả hơn – do đó tiết kiệm chi phí. Tiêu chuẩn token này cho phép tạo ra cả token tiện ích (chẳng hạn như BNB hoặc BAT) và cả các Non-Fungible Token như CryptoKitties.
+
+ERC-1155 bao gồm các tối ưu hóa cho phép thực hiện các giao dịch hiệu quả hơn và an toàn hơn. Các giao dịch có thể được nhóm lại với nhau – do đó giảm chi phí chuyển token. ERC-1155 được xây dựng dựa trên công việc trước đó như ERC-20 (token tiện ích) và ERC-721 (các vật phẩm sưu tầm hiếm).
+
+## Sự Khác Nhau Giữa ERC-1155 và ERC-721
+
+Tiêu chuẩn(standard) là tập hợp các quy tắc xác định dữ liệu thể hiện các chức năng mà mỗi token có thể thực hiện.
+
+Tất cả những NFT khi được tạo ra là không giống nhau, điều này rõ ràng hơn khi đem so sánh hai tiêu chuẩn ERC-1155 và ERC-721. 
+
+Tiêu chuẩn ERC-1155 được tạo ra với các chức năng tương tự như một chiếc máy bán hàng tự động, nơi mà các nhà phát triển có thể triển khai một hợp đồng thông minh, cái mà có thể được sử dụng để đúc cả fungible token và non fungible token.
+
+Còn tiêu chuẩn ERC-721 chỉ có thể sản xuất ra các non fungible token và buộc các nhà phát triển phải triển khai một hợp đồng thông minh mới cho mỗi token mới.
+
+ERC-721 giống như việc bạn phải tạo ra một cái máy bán nước tự động cho một chai nước mới. Vô tình tạo ra nhiều sự lãng phí không những không gian, chi phí sản xuất mà còn thời gian phát triển khi triển khai NFT vào blockchain.
+
+Do đó, dự liệu các token là cực kỳ không đồng nhất, hầu hết những dự án đều có cấu trúc dữ liệu khác nhau trong trong hợp đồng thông minh(smart contracts) của họ, điều này có nghĩa là nếu bạn muốn hỗ trợ ERC-721 từ nhiều dự án, bạn phải tạo tích hợp riêng cho mỗi token. Cuối cùng sẽ làm tốn thêm không gian và thời gian phát triển ứng dụng của bạn.
+
+Và vì vậy mô hình phát triển cốt lõi của dữ liệu ERC-721 sẽ không thể mở rộng trong thị trường game và không thể phát triển trên quy môn lớn.
+
+## Event TransferSingle
+```
+    /**
+        event TransferSingle được emit khi chuyển 1 loại token
+        `_operator` là địa chỉ (hay contract) có quyền thực hiện chuyển token (được `_from` ủy quyền) (`_operator` ở đây là msg.sender)
+        `_from` là địa chỉ gửi token
+        `_to` là địa chỉ nhận token
+        `_id` loại token được chuyển
+        `_value` lượng token được chuyển
+        Với giao dịch tạo token, `_from` là địa chỉ `0x0`
+        Với giao dịch hủy token, `_from` là địa chỉ `0x0`
+    */
+    event TransferSingle(
+        address indexed _operator,
+        address indexed _from,
+        address indexed _to,
+        uint256 _id,
+        uint256 _value
+    );
+```
+
+## Event TransferBatch
+```
+    /**
+        event TransferBatch được emit khi chuyển nhiều loại token
+        `_operator` là địa chỉ (hay contract) được phê duyệt để thực hiện chuyển khoản (msg.sender)
+        `_from` là địa chỉ gửi token
+        `_to` là địa chỉ nhận token
+        `_ids` là danh sách các loại token được gửi
+        `_values` là danh sách số lượng token được gửi (ứng với từng loại token trong tham số `_ids` ở trên)
+        Với giao dịch tạo token, `_from` là địa chỉ `0x0`
+        Với giao dịch hủy token, `_from` là địa chỉ `0x0`
+    */
+    event TransferBatch(
+        address indexed _operator,
+        address indexed _from,
+        address indexed _to,
+        uint256[] _ids,
+        uint256[] _values
+    );
+```
+
+## safeTransferFrom
+```
+    /**     
+        Hàm thực hiện chuyển chuyển token
+        revert nếu `_to` là địa chỉ `0x0`
+        revert nếu số dư token bé hơn `_value`
+        Emit event TransferSingle khi gửi
+        @param _from    địa chỉ gửi
+        @param _to      địa chủ nhận
+        @param _id      ID của loại token
+        @param _value   Số lượng token cần gửi
+        @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
+         Sau khi thỏa mãn các điều kiện tra, hàm sẽ kiểm tra xem địa chỉ `_to` có là địa chỉ      contract hay không (code size > 0) ?
+        Nếu có thì phải gọi đến `onERC1155Received`  thuộc contract `_to`
+    */
+    function safeTransferFrom(
+        address _from,
+        address _to,
+        uint256 _id,
+        uint256 _value,
+        bytes calldata _data
+    ) external;
+```
+
+## safeBatchTransferFrom
+```
+    /**                  
+        Hàm gửi nhiều loại Token
+        revert nếu `_to` là địa chỉ `0x0`
+        revert nếu độ dài mảng `_ids` khác độ dài mảng `_values`
+        revert nếu có trường hợp số lượng token gửi đi lớn hơn số token hiện có
+        emit event `TransferSingle` hoặc `TransferBatch` tùy vào số lượng token gửi đi
+        @param _from    địa chỉ gửi
+        @param _to      địa chỉ nhận
+        @param _ids     Danh sách ID của các loại token cần gửi
+        @param _values  Số lượng từng loại token tương ứng cần gửi
+        @param _data    
+        Sau khi thỏa mãn các điều kiện tra, hàm sẽ kiểm tra xem địa chỉ `_to` có là địa chỉ       contract hay không (code size > 0) ?
+        Nếu có thì phải gọi đến `onERC1155Received` hoặc `onERC1155BatchReceived` thuộc contract `_to`
+    */
+    function safeBatchTransferFrom(
+        address _from,
+        address _to,
+        uint256[] calldata _ids,
+        uint256[] calldata _values,
+        bytes calldata _data
+    ) external;
+```
+
+## balanceOf
+```
+    /**
+        Hàm trả về số lượng token hiện có của tài khoản
+        @param _owner  địa chỉ cần kiểm tra
+        @param _id     id của loại token
+     */
+    function balanceOf(address _owner, uint256 _id)
+        external
+        view
+        returns (uint256);
+```
+
+## balanceOfBatch
+```
+    /**
+        Hàm trả về số lượng token hiện có của nhiều tài khoản
+        @param _owners Danh sách các địa chỉ
+        @param _ids    Danh sách id của token
+     */
+    function balanceOfBatch(address[] calldata _owners, uint256[] calldata _ids)
+        external
+        view
+        returns (uint256[] memory);
+```
+
+## setApprovalForAll
+```
+    /**
+        Cho phép hoặc vô hiệu bên thứ 3 tham gia vào quá trình quản lý token
+        emit event ApprovalForAll
+        @param _operator  Địa chỉ được ủy quyền
+        @param _approved  True là được ủy quyền, false là vô hiệu
+    */
+    function setApprovalForAll(address _operator, bool _approved) external;
+```
+
+## isApprovedForAll
+```
+    /**
+        Truy vấn xem địa chỉ `_operator` có được ủy quyền với token của `_owner` không ?
+        @param _owner     Chủ của token
+        @param _operator  Địa chỉ được ủy quyền
+       
+    */
+    function isApprovedForAll(address _owner, address _operator)
+        external
+        view
+        returns (bool);
+```
+
+## onERC1155Received
+```
+    /**
+        @notice Hàm sẽ được gọi khi contract được nhận 1 loại token (`safeTransferFrom`). 
+        @notice Xử lý việc nhận 1 loại token ERC1155
+        @param _operator  Địa chỉ (hay contract) được phê duyệt để thực hiện chuyển khoản (msg.sender)
+        @param _from      Địa chỉ gửi token
+        @param _id        ID của loại token
+        @param _value     Lượng token cần gửi
+        @param _data      Dữ liệu bổ sung (không có định dạng cụ thể)
+        @return giá trị trả về: bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")
+    */
+    function onERC1155Received(address _operator, address _from, uint256 _id, uint256 _value, bytes calldata _data) external returns(bytes4);
+```
+
+## onERC1155BatchReceived
+```
+    /**
+        @notice Hàm sẽ được gọi khi contract được nhận nhiều loại token (`safeBatchTransferFrom`).
+        @param _operator  Địa chỉ (hay contract) được phê duyệt để thực hiện chuyển khoản (msg.sender)
+        @param _from      Địa chỉ gửi token
+        @param _ids       Danh sách ID của các loại token được gửi
+        @param _values    Danh sách lượng token cần gửi tương ứng với mỗi loại
+        @param _data      Dữ liệu bổ sung (không có định dạng cụ thể)
+        @return giá trị trả về: `bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))`
+    */
+    function onERC1155BatchReceived(address _operator, address _from, uint256[] calldata _ids, uint256[] calldata _values, bytes calldata _data) external returns(bytes4);  
+```
