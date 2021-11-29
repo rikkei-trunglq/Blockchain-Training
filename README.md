@@ -1151,3 +1151,27 @@ Và vì vậy mô hình phát triển cốt lõi của dữ liệu ERC-721 sẽ 
     */
     function onERC1155BatchReceived(address _operator, address _from, uint256[] calldata _ids, uint256[] calldata _values, bytes calldata _data) external returns(bytes4);  
 ```
+
+# ChainLink
+
+## Oracle
+Oracle trong lĩnh vực Blockchain được hiểu là nguồn cấp dữ liệu, cho phép các dịch vụ của bên thứ ba cung cấp cho các hợp đồng thông minh những thông tin bên ngoài thế giới thực vào trong thế giới blockchain.
+
+Ví dụ: Nếu hai bên đang đặt cược vào trò chơi bóng rổ thông qua hợp đồng thông minh trên blockchain, thì bên thứ ba là Oracle sẽ cho phép hợp đồng thông minh biết kết quả trận đấu bằng cách xuất bản dữ liệu liên quan lên blockchain. Quá trình này thường được tự động hóa bằng phần mềm. Một bot có thể quét NBA.com để biết điểm số của các trận đấu và tự động xuất bản chúng lên blockchain. Nhưng cho dù đó là một người hay phần mềm, nó vẫn tồn tại bên ngoài blockchain.
+
+Chainlink đơn giản là một mạng oracle phi tập trung, đảm bảo sự tin cậy, toàn vẹn cho nguồn dữ liệu bên ngoài đưa vào blockchain qua các cơ chế đồng thuận. Mạng ChainLink bao gồm nhiều node (oracle), điều này tránh được việc 1 điểm lỗi duy nhất mà các oracle tập trung gặp phải.
+
+![alt text](https://images.viblo.asia/a2e79af3-1d40-499d-bab4-b27ca19743a3.png)
+
+Kiến trúc Chainlink gồm 2 phần chính:
+
+- Phần thuộc blockchain (on-chain): User smart contract (User-SC), chainlink smartcontract (Chainlink-SC hay Oracle Contract).
+- Phần bên ngoài mạng blockchain (off-chain): Chainlink Node (Oracle) và External API.
+
+`User-SC`: Smart contract thông thường được viết bằng Solidity hay Vyper, chứa logic của ứng dụng.
+
+`Oracle contract`: Smart contract trên Ethereum, được cung cấp bởi Oracle node. Oracle contract có nhiệm vụ nhận request từ user contract và chuyển đến các oracle node để xử lý tiếp.
+
+`Chainlink Node`: Là các node trong mạng Chainlink, mỗi node sẽ có một phần core chứa logic hoạt động và phần adapter giúp lấy dữ liệu từ các API bên ngoài (get, post, ...)
+
+`External API`: Là các trang web, dịch vụ lưu trữ dữ liệu bên ngoài.
