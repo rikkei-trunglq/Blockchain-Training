@@ -1324,7 +1324,7 @@ contract RandomNumber is VRFConsumerBase {
 - Deploy trên Remix
 1. Thực hiện getRandomNumber() sẽ báo lỗi vì khi thực hiện random sẽ mất phí LINK, nên cần transfer LINK vào contract.
 2. Copy address của contract sau khi được deploy, quay trở lại Metamask transfer một lượng LINK vào contract.
-3. Thực hiện getRandomNumber() lại lần nữa, lấy ra giá trị randomResult sẽ được: 91140232136701889567811469737095454324173320225978079664039634614108471846250
+3. Thực hiện getRandomNumber() lại lần nữa, lấy ra giá trị randomResult sẽ được một dãy số ngẫu nhiên: 91140232136701889567811469737095454324173320225978079664039634614108471846250
 
 Nguồn: 
   https://coinf.io/chainlink-vrf-la-gi/#ftoc-heading-4
