@@ -1175,3 +1175,153 @@ Kiến trúc Chainlink gồm 2 phần chính:
 `Chainlink Node`: Là các node trong mạng Chainlink, mỗi node sẽ có một phần core chứa logic hoạt động và phần adapter giúp lấy dữ liệu từ các API bên ngoài (get, post, ...)
 
 `External API`: Là các trang web, dịch vụ lưu trữ dữ liệu bên ngoài.
+
+# Chainlink VRF
+
+Chainlink VRF là viết tắt của Chainlink Verifiable Random Function, là một liên kết đã được kiểm chứng và xác minh về tính ngẫu nhiên được sắp xếp chính xác cho các hợp đồng thông minh. Các nhà phát triển hợp đồng thông minh sử dụng Chainlink VRF để xây dựng những hợp đồng thông minh đáng tin cậy cho bất kì ứng dụng nào mà yêu cầu kết quả đầu ra ngẫu nhiên, ví dụ:
+- Tạo ra các game đáng tin cậy hơn bằng cách sử dụng nguồn ngẫu nhiên có thể xác minh được trên chuỗi.
+- Tạo ra các game vui hơn, thử thách hơn bằng cách tạo ra các thách thức và kịch bản, môi trường không dự đoán trước được, và đồng thời chỉ định phần thưởng cho người chơi một cách không thể dự đoán trước, như là một phần thưởng chiến lợi phẩm.
+- Tạo ra các nhiệm vụ và tài nguyên được giao một cách ngẫu nhiên, có thể chứng mình được, ví dụ: chỉ định các thẩm phán một cách ngẫu nhiên cho các vụ việc hoặc kiểm toàn viên cho các công ty dưới sự giám sát kĩ lưỡng.
+- Chọn một mẫu đại diện gồm các quan sát viên đủ điều kiện bỏ phiếu cho một đề xuất mà hợp đồng cần để thiết lập sự đồng thuận.
+
+## Cách thức hoạt động của Chainlink VRF
+Một hợp đồng thông minh yêu cầu một đối tượng ngẫu nhiên bằng cách cung cấp 1 seed phase cho Chainlink. Seed phase này không thể đoán trước được với các Oracle, nó được sử dụng để tạo ra một số ngẫu nhiên, sau đó được gửi đến hợp đồng thông minh trên chuỗi.
+
+Mỗi oracle sử dụng khóa bị mật của riêng mình khi tạo ra đối tượng ngẫu nhiên này.
+
+Khi kết quả được xuất bản trên chuỗi cùng với một bằng chứng, nó sẽ được xác minh bằng cách sử dụng khóa công khai của oracle và seed phase của ứng dụng.
+
+Dựa vào khả năng xác minh bằng chứng và chữ kí được chấp nhận rộng rãi của một blockchain, điều này cho phép các hợp đồng chỉ sử dụng tính ngẫu nhiên cũng đã được xác minh bởi cùng một môi trường trên chuỗi đang chạy chính hợp đồng đó.
+![alt text](https://coinf.io/wp-content/uploads/2021/11/chainlink-vrf-is-provably-fair-1024x430.png)
+## Lợi ích của việc sử dụng Chainlink VRF
+- Lợi ích cơ bản của việc sử dụng Chainlink VRF là tính ngẫu nhiên có thể kiểm chứng của nó. Ngay cả khi một nút bị xâm phạm, nó không thể thao tung hoặc cung cấp các câu trả lời sai lệch. Trường hợp xấu nhất là nút bị xâm phạm, không trả lại phản hồi cho một yêu cầu, nút này sẽ xuất hiện mãi mãi trên blockchain và không được tham gia vào việc cung cấp các bằng chứng xác thực sau này nữa.
+- Một lợi ích bổ sung của Chainlink VRF là, khi nhiều người dùng sử dụng nó, phí người dùng phải trả cho các node tăng lên, tạo động lực cho các nhà khai thác nút cung cấp càng nhiều đảm bảo an ninh càng tốt. Chất lượng của các nút tăng lên càng tăng độ tin cậy cho người dùng sử dụng Chainlink VRF
+## Ứng dụng của Chainlink VRF trong Gaming và NFT
+### Phân phối các nhân vật
+Hầu hết các game đều có nhiều nhân vật khác nhau, mỗi nhân vật lại có các thuộc tính riêng biệt. Một vài nhân vật phổ biến trong khi những nhân vật khác sẽ có độ hiếm khác nhau. Việc xác định cách mà các nhân vật được tạo ra là rất quan trọng để tạo ra một trò chơi công bằng, đặc biệt trong các game blockchain Play-to-earn khi mà người chơi kiếm được nhiều phần thưởng (tiền) hơn khi họ sở hữu các nhân vật tốt hơn.
+
+Axie Infinity là một trong những game blockchain play-to-earn phổ biến, nơi mà người chơi sẽ chiến đấu, nâng cấp và giao dịch các nhân vật NFT gọi là các Axies. Mỗi Axie bao gồm 6 phần – lưng, tai, mắt, sừng miệng và đuôi, mỗi phần này lại có những thông số và đặc điểm khác nhau.
+
+Bởi vì một số các đặc trưng sẽ có giá trị hơn những cái khác, nên Axie Infinity đã tích hợp với Chainlink VRF để chắc chắn rằng mỗi trong số 4088 Origin Axies được tạo ra sẽ có các đặc tính một cách ngẫu nhiên dựa trên tỷ lệ đã được định nghĩa sẵn trong hợp đồng thông minh của họ.
+![alt text](https://coinf.io/wp-content/uploads/2021/11/axie-infinity-chainlink-vrf-1024x576.png)
+### Ghép cặp người chơi trong các trận thi đấu PVP và Giải đấu
+Việc ghép cặp người chơi là thành phần quan trọng của các trò chơi nhiều người chơi có tính năng thi đấu người với người (PVP). Sự thành công của người chơi và khả năng dành các phần thưởng của họ sẽ phụ thuộc nhiều vào đối thủ mà họ được ghép cặp trong các trận thi đấu, tạo ra sự quan trọng của việc ghép cặp một cách hợp lý.
+
+CryptoBlades là một game blockchain nhập vai nơi người chơi có thể rèn các vật phẩm duy nhất, tiêu diệt quái vật, tham gia vào các cuộc đột kích và chiến đấu chống lại người chơi khác trong các trận thi đấu PvP.
+
+Một trong nhiều cách mà CryptoBlades sử dụng Chainlink VRF là để thiết lập các cặp thi đấu không dự đoán trước, mà người thắng cuộc có thể dành các phần thưởng là token $SKILL. Nhờ sự công bằng của Chainlink VRF mà người chơi có thể yên tâm rằng sẽ không hề có một sự can thiệp nào đến việc ghép cặp này để tạo ra lợi ích cho một vài cá nhân/người chơi cụ thể.
+### Game dựa trên sự may mắn
+Một vài loại game lại dựa vào sự may mắn hơn là dựa vào khả năng của người chơi và kĩ năng của nhân vật mà họ điều khiển.
+
+DeRace là một game mà người chơi thu thập, lai tạo và đua các chú ngựa NFT để giành phần thưởng chiến thắng. Thay vì mặc định rằng những chú ngựa có chỉ số cao sẽ chắc chắn giành chiến thắng trong mọi cuộc đua, DeRace tích hợp với Chainlink VRF để ngẫu nhiên tạo ra kết quả của cuộc đua.
+
+Trước khi bắt đầu cuộc đua, hợp đồng thông minh sẽ so sánh chỉ số của mỗi chú ngựa tham gia và tính toán tỉ lệ thắng cuộc. Chainlink VRF sẽ lựa chọn ngẫu nhiên chú ngựa dành chiến thắng dựa trên các khả năng đó để đem lại nhiều sự hứng thú và khó dự đoán hơn. Điều này là hoàn toàn đúng trong các cuộc đua ngoài đời thực khi mà người chiến thắng rất khó để dự đoán.
+### Nâng cấp nhân vật
+Nâng cấp các nhân vật chắc chắn là một tính năng không thể thiếu trong hầu hết các trò chơi. Sau một quá trình tham gia và tích lũy kinh nghiệm, người chơi có các lựa chọn nâng cấp các nhân vật của mình. Mỗi quá trình nâng cấp thành công sẽ có cơ hội tạo ra các thuộc tính nâng cao. Và việc đảm bảo tính ngẫu nhiên của quá trình này là cần thiết để tạo ra một môi trường game công bằng.
+
+### Tạo ra các bản đồ và các vật phẩm trong mỗi bản đồ
+Trong khi nhiều game sẽ có các bản đồ cố định thì một số game lại có những thuật toán để tạo ra các vùng đất mới và nhiều tính năng khác nhau bên trong mỗi vùng đất đó. Tính ngẫu nhiên có thể được áp dụng vào các thuật toán này để lựa chọn trong 1 danh sách các đầu ra.
+
+OVR là một trò chơi thực tế ảo mà người chơi có thể hợp nhất thế giới thực và thế giới ảo để mở khóa các kinh nghiệm duy nhất, và đạt được phần thưởng ở những vị trí khác nhau.
+
+Thế giới ảo OVR được chia thành 300 OVRLand NFT diễn tả cho 300 mét vuông trong thế giới thực. Chủ sỡ hữu của những NFT này có thể tùy chỉnh kinh nghiệm và mô phỏng cho những đối thủ khác của mình. Đồng thời, người chơi có thể bắt gặp các rương kho báu và các sự kiện độc đáo khác khi họ khám phá metaverse.
+
+OVR sử dụng Chainlink VRF để ngẫu nhiễn tạo ra các chương kho báu ở các vị trí khác nhau trong các OVRLand, giúp tạo ra một vùng đất hoàn toàn khác với các vùng đất khác, đem đến cơ hội công bằng cho tất cả các người chơi.
+### Xác định thứ tự thi đấu
+Một trong những game đầu tiên trên Avalanche blockchain là Avaxcells – NFT game card mà người chơi có thể sử dụng để chiến đầu 1v1 với người chơi khác. Mỗi một Avaxcell NFT được đúc ra từ 1 trong 8 thành phần đặc biệt, như lửa, nước và gió, có những ưu thế và bất lợi độc nhất đối với các thành phần khác. Mỗi thẻ cũng có các đặc trưng về độ quý hiếm như phổ thông, đặc biệt, hiếm, sử thi và huyền thoại, xác định độ mạnh và hiếm của NFT.
+
+Avaxcells tích hợp Chainlink VRF để xác định một cách công bằng người chơi nào sẽ được tất công trước trong các trận đấu PvP.
+### Vị trí hồi sinh nhân vật
+Khi một người chơi bị chết trong các trò chơi bắn súng, họ sẽ được hồi sinh sau đó ở một ví trí nào đó trên bản đồ, thông thường ở 1 vài vị trí cố định. Mặt khác, nếu người chơi được hồi sinh ở các vị trí khác nhau sẽ ảnh hưởng đến ưu thế hay bất lợi đối với người chơi đó, tùy vào vị trí mà họ được hồi sinh.
+
+Trong các trò chơi bắn súng góc nhìn thứ nhất như Arsenal, việc sắp xếp nhân vật là một quá trình phức tạp nổi tiếng, vì những game thủ có kinh nghiệm hơn có thể ghi nhớ vị trí các điểm xuất hiện của các nhân vật sau khi chết, và họ sẽ chờ sẵn ở các điểm này để tấn công người chơi ngay khi họ hồi sinh.
+
+Vì đây là một trò chơi năng động không cạnh tranh, Arsenal đang tích hợp với Chainlink VRF để đảm bảo rằng vị trí các nhân vật và điểm xuất phát của họ là tùy ý và khó đoán trước.
+### Gán các thông số cho NFT sử dụng tính xác suất
+Tương tự như Axie Infinity, NFTs thường được tạo ra với 1 số các thông số ngẫu nhiên từ 1 loạt các thuộc tính. Ví dụ như Polychain Monsters là 1 game blockchain, là nơi sinh sống của các quái vật dựa trên NFT với ba loại đặc điểm riêng biệt – màu sắc, loại sừng, và ánh kim, – và một số đặc điểm với độ hiếm khác nhau trong mỗi danh mục.
+
+Sự kết hợp của các đặc điểm trên cả ba loại sẽ xác định độ hiếm của một Polychain Monster.
+
+Độ hiếm của các Polychain Monster sẽ quyết định sức mạnh trong các trận chiến, vì vậy mà sự công bằng về tính ngẫu nhiên rất quan trọng trong quá trình tạo ra các Polychain Monster NFT.
+
+Việc tích hợp với Chainlink VRF sẽ đảm bảo tính công bằng và ngẫu nhiên này.
+Những đặc điểm này không chỉ áp dụng cho các nhân vật trong trò chơi, mà còn có thể áp dụng cho các đặc điểm của nghệ thuật. CryptOrchids là một dự án nghệ thuật mà các NFT có đặc điểm động., nơi các NFT có thể thay đổi theo thời gian để phản ánh sự phát triển trong thế giới thực.
+
+Người dùng cần tưới nước cho CryptOrchids của họ hàng tuần trong khoảng thời gian 3 giờ cụ thể, nếu không hoa NFT của họ sẽ chết.
+
+CryptOrchids sử dụng Chinlink VRF để xác định loài hoa NFT được đúc, với mỗi giống hoa sẽ có một độ hiếm nhất định. Loại hoa Shenzhen Nongke Orchid có tỉ lệ 1/10,000 cơ hội được đúc ra. Tuy nhiên, việc sử dụng xác suất vẫn có thể có nhiều hơn một giống này được đúc ra.
+
+### Trao giải thưởng cho các NFT Holders
+NFT cũng có thể đại diện cho quyền truy cập độc quyền vào các giải thưởng và phần thưởng trong thế giới thực, nơi chỉ những người nắm giữ NFT mới đủ điều kiện giành chiến thắng.
+
+Thông qua quan hệ đối tác với Ether Cards, LaMelo Ball đã trở thành một trong những vận động viên chuyên nghiệp đầu tiên cung cấp thẻ giao dịch NFT cho người hâm mộ của mình.
+
+Cấp cao nhất trong bản phát hành NFT của anh ấy, thẻ Gold Evolve, tự động đưa người sở hữu vào các đợt rút thăm ngẫu nhiên để giành được các kỷ vật như giày trong trò chơi, tay áo tùy chỉnh và nhẫn vô địch trường trung học của anh ấy
+
+Bộ sưu tập NFT của LaMelo đã sử dụng Chainlink VRF để chọn người chiến thắng trong các đợt rút thăm này và sử dụng orcale Chainlink để đúc các NFT đặc biệt tùy thuộc vào việc anh ta có giành được giải thưởng Tân binh NBA năm 2021 hay không. LaMelo đã giành chiến thắng và Chainlink oracle đã cung cấp kết quả trực tuyến để kích hoạt giải thưởng Rookie of the Year NFT cho những người nắm giữ Gold Evolve.
+
+Kể từ khi tích hợp Chainlink VRF, Ether Cards đã đạt được tổng doanh số hơn 24 triệu đô la, bao gồm hơn 6K + NFT duy nhất được mua.
+## Chainlink VRF sample code
+### Thêm Polygon Testnet vào Metamask
+- Network Name: Polygon Testnet
+- New RPC URL: https://rpc-mumbai.matic.today/
+- Chain ID: 80001.
+- Currency Symbol: MATIC.
+- Block Explorer URL: https://explorer-mumbai.maticvigil.com/
+### Import LINK token vào ví
+- Address: 0x326C977E6efc84E512bB9C30f76E30c160eD06FB
+### Claim MATIC token va LINK token
+- https://faucet.polygon.technology/
+### Tạo sample code
+```
+// SPDX-License-Identifier: MIT
+pragma solidity 0.6.6;
+
+import "@chainlink/contracts/src/v0.6/VRFConsumerBase.sol";
+
+contract RandomNumber is VRFConsumerBase {
+    bytes32 internal keyHash;
+    uint256 internal fee;
+    
+    uint256 public randomResult;
+    bytes32 public request;
+    
+    /**
+     * Constructor inherits VRFConsumerBase
+     * 
+     * Network: Polygon (Matic) Mumbai Testnet
+     * Chainlink VRF Coordinator address: 0x8C7382F9D8f56b33781fE506E897a4F1e2d17255
+     * LINK token address:                0x326C977E6efc84E512bB9C30f76E30c160eD06FB
+     * Key Hash: 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4
+     */
+    constructor() 
+        VRFConsumerBase(
+            0x8C7382F9D8f56b33781fE506E897a4F1e2d17255, // VRF Coordinator
+            0x326C977E6efc84E512bB9C30f76E30c160eD06FB  // LINK Token
+        ) public
+    {
+        keyHash = 0x6e75b569a01ef56d18cab6a8e71e6600d6ce853834d4a5748b720d06f878b3a4;
+        fee = 0.0001 * 10 ** 18; // 0.0001 LINK
+    }
+    
+    /** 
+     * Requests randomness 
+     */
+    function getRandomNumber() public returns (bytes32 requestId) {
+        require(LINK.balanceOf(address(this)) > fee, "Not enough LINK - fill contract with faucet");
+        return requestRandomness(keyHash, fee);
+    }
+
+    /**
+     * Callback function used by VRF Coordinator
+     */
+    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+        request = requestId;
+        randomResult = randomness;
+    }
+}
+```
+- Deploy trên Remix
+1. Thực hiện getRandomNumber() sẽ báo lỗi vì khi thực hiện random sẽ mất phí LINK, nên cần transfer LINK vào contract.
+2. Copy address của contract sau khi được deploy, quay trở lại Metamask transfer một lượng LINK vào contract.
+3. Thực hiện getRandomNumber() lại lần nữa, lấy ra giá trị randomResult sẽ được: 91140232136701889567811469737095454324173320225978079664039634614108471846250
